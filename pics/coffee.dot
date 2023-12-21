@@ -1,0 +1,37 @@
+digraph KripkeGraph {
+    // Установка общих свойств вершин и рёбер
+    rankdir=LR;
+    node [shape=circle, style=filled, fontname="Arial"];
+    edge [fontname="Arial"];
+
+    // Определение вершин с предикатами и метками
+    S0 [label="S0\n", fillcolor="lightblue"];
+    S1 [label="S1\n{s}", fillcolor="lightblue"];
+    S2 [label="S2\n{s, h, w}", fillcolor="lightgreen"];
+    S3 [label="S3\n{s, h, g}", fillcolor="lightgreen"];
+    S4 [label="S4\n{s, h}", fillcolor="lightblue"];
+    S5 [label="S5\n{s, h, w, g, m}", fillcolor="yellow"];
+    S6 [label="S6\n{s, h, w, g}", fillcolor="yellow"];
+    S7 [label="S7\n{s, h, m}", fillcolor="lightgreen"];
+    S8 [label="S8\n{s, h}", fillcolor="lightcoral"];  // Нарушение свойства безопасности
+
+    // Определение рёбер с действиями
+    S0 -> S1 [label="Подача питания"];
+    S1 -> S2 [label="Нагрев термопары\nпроверка воды"];
+    S2 -> S3 [label="Проверка гущи"];
+    S2 -> S2 [label="Не заливать воду"];
+
+    S3 -> S4 [label="Переход в меню"];
+    S3 -> S3 [label="Не очистить гущу"];
+
+    S4 -> S4 [label="Бездействие\nменее 30 минут"];
+    S4 -> S0 [label="Бездействие\nболее 30 минут"];
+    S4 -> S5 [label="Запрос кофе c молоком"];
+    S4 -> S6 [label="Запрос кофе"];
+    S5 -> S7 [label="Забрать кофе с молоком\n"];
+    S6 -> S2 [label="Забрать черный кофе\nпроверка уровня воды"];
+    S7 -> S2 [label="проверка уровня воды"];
+
+    // Дополнительные переходы
+    S1 -> S8 [label="Прогреть без воды", color="red"];  // Нарушение свойства безопасности
+}
