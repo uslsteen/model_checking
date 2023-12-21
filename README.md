@@ -1,2 +1,2 @@
-# model_checking
+# Model Checking
 9th, Model Checking, Base Chair Course 
