@@ -4,8 +4,15 @@ EXTENDS Integers, TLC, Sequences
 
 (*********************************** VARIABLES ***********************************)
 (*--algorithm CoffeeMachine
-variables start = FALSE, heated = FALSE, water = FALSE, milk = FALSE,
-          waited_time = 0, water_level = 10, grounds_level = 0, milk_level = 10;
+variables
+    start = FALSE, 
+    heated = FALSE, 
+    water = FALSE, 
+    milk = FALSE,
+    waited_time = 0, 
+    water_level = 10, 
+    grounds_level = 0, 
+    milk_level = 10;
 
 procedure GetMilkCoffee() 
 begin
@@ -37,8 +44,8 @@ procedure RunCoffee()
 begin
     begin_process:
     \*
-        await(water /\ (water_level = 0));
-        await(milk /\ (milk_level = 0));
+        await water = (water_level = 0);
+        await milk = (milk_level = 0);
 
         if (water) then
             s3:
@@ -55,7 +62,7 @@ begin
                 end if;
         end if;
     \*
-    check_validation:
+    check_timer:
         if (waited_time > 30) then
             heated := FALSE;
             goto end_process;
@@ -72,16 +79,23 @@ begin
         start := TRUE;
 
     s2:
-        await heated = TRUE;
-        water_level := water_level - 1;
-        
-        if (heated = TRUE) then 
-            call RunCoffee();
-        end if;
-        
+        if (water_level > 0) then
+            heated := TRUE;
+            water_level := water_level - 1;
 
+            call RunCoffee();
+        else
+            goto s0;
+        end if;
     s0:
         start := FALSE;
 end process;
 
+fair process User = "User" begin
+    init:
+        start := TRUE;
+        heated := TRUE;
+end process;
+
 end algorithm;*)
+====
