@@ -100,6 +100,17 @@ begin
         exists := (result /= NullNode);
 end procedure;
 
+procedure clear()
+begin
+    impl:
+       Lock();
+       root := NullNode;
+       nodes := {};
+       deleted := {};
+    end_body:
+        Unlock();
+end procedure;
+
 fair process Main = "Main"
 begin
     main_loop:
@@ -111,6 +122,8 @@ begin
                     call find_node(root, value);
                 elsif action_type = "contains" then
                     call contains(value);
+                elsif action_type = "clear" then
+                    call clear();
                 elsif action_type = "delete" then
                     with node \in nodes do
                         call delete_node(node);
@@ -121,4 +134,38 @@ begin
 end process;
 
 end algorithm;*)
+
+(***** Invariant Definitions *****)
+IsParent(node, child) ==
+    (node.left = child) \/ (node.right = child)
+
+    \* Each node except root has one parent
+AllNodesHaveParents == (\A n \in nodes : n /= root => \E p \in nodes : IsParent(p, n))
+    \* Left child values are less
+LeftChildValsLessThanParent == (\A n \in nodes : (n.left /= NullNode => n.left.value < n.value))
+    \* Right child values are greater
+RightChildValsGreaterThanParent == (\A n \in nodes : (n.right /= NullNode => n.right.value > n.value))
+    \* Acyclic
+Acyclic == \A n \in nodes : ~ (n \in n.^(left \union right))
+    \* Non-crossing sets, nodes and deleted aren't interesecting
+NoIntesectNodeAndDeleted == nodes \cap deleted = {}
+    \* Deleted nodes have no children
+DeletedHaveNoChildred == \A n \in deleted : (n.left = NullNode) /\ (n.right = NullNode)
+
+BSTInvariants == AllNodesHaveParents /\
+                 LeftChildValsLessThanParent /\
+                 RightChildValsGreaterThanParent  /\
+                 Acyclic /\
+                 NoIntesectNodeAndDeleted /\
+                 DeletedHaveNoChildred
+
+====
+
+\* == Properties ==
+ASSUME Init =>
+         ([] BSTInvariants)
+
+\* == Temporal Properties ==
+SPECIFICATION == ([] BSTInvariants)
+
 ====
