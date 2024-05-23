@@ -79,8 +79,42 @@ pred BSTIsValid {
     BST.elems + BST.deleted = Node
 }
 
+// Predicate correct check
+pred checkAllNodesHaveParents {
+    all n: BST.elems - BST.root | one n.~(left + right)
+}
+
+pred checkLeftChildValsLessThanParent {
+    all n: BST.elems | no n.left or n.left.value < n.value
+}
+
+pred checkRightChildValsGreaterThanParent {
+    all n: BST.elems | no n.right or n.right.value > n.value
+}
+
+pred checkAcyclic {
+    no n: BST.elems | n in n.^(left + right)
+}
+
+pred checkElemsNotInDeleted {
+    all n: BST.elems | n not in BST.deleted
+}
+
+pred checkDeletedNodesHaveNoChildren {
+    all n: BST.deleted | no n.left and no n.right
+}
+
+pred sanityChecks {
+    checkAllNodesHaveParents and
+    checkLeftChildValsLessThanParent and
+    checkRightChildValsGreaterThanParent and
+    checkAcyclic and
+    checkElemsNotInDeleted and
+    checkDeletedNodesHaveNoChildren
+}
+
 fact "init" {
-    #Node > 4
+    #Node > 6
     #BST.elems > 3
     BSTIsValid
 }
@@ -102,4 +136,12 @@ pred noChange {
 
 run {
     always transitions
+
+    checkAllNodesHaveParents and
+    checkLeftChildValsLessThanParent and
+    checkRightChildValsGreaterThanParent and
+    checkAcyclic and
+    checkElemsNotInDeleted and
+    checkDeletedNodesHaveNoChildren
+    //
 } for 5 but 1..2 steps
