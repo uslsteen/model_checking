@@ -116,7 +116,7 @@ pred sanityChecks {
 fact "init" {
     #Node > 6
     #BST.elems > 3
-    BSTIsValid
+    BSTIsValid and sanityChecks
 }
 
 pred transitions {
