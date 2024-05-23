@@ -9,22 +9,39 @@ NullNode == [value |-> NodeValuePlaceholder, left |-> NULL, right |-> NULL]
 (***** VARIABLES *****)
 (* --algorithm bst
 variables
-    nodes = {},
     root = NullNode,
-    deleted = {};
+    nodes = {},
+    deleted = {},
+    found = NullNode,
+    exists = FALSE;
+    mutex = FALSE;
 
 define
     Node == [left: NullNode, right: NullNode, value: NodeValuePlaceholder]
 end define;
 
-procedure add_node(new_value)
+macro Lock()
 begin
-    impl_node:
+  await !mutex;
+  mutex := TRUE;
+end macro;
+
+macro Unlock()
+begin
+  mutex := FALSE;
+end macro;
+
+procedure insert_node(new_value)
+begin
+    body:
+        Lock();
         if root = NullNode then
             root := [left |-> NullNode, right |-> NullNode, value |-> new_value];
         else
             call insert_impl(root, new_value);
         end if;
+    end_body:
+        Unlock();
 end procedure;
 
 procedure insert_impl(node, new_value)
@@ -50,22 +67,51 @@ end procedure;
 
 procedure delete_node(node)
 begin
-    i:
-       if node = root then
+    impl:
+        Lock();
+        if node = root then
             root := NullNode;
-       end if;
-       nodes := nodes \ {node};
-       deleted := deleted \union {node};
+        end if;
+        nodes := nodes \ {node};
+        deleted := deleted \union {node};
+    end_body:
+        Unlock();
+end procedure;
+
+procedure find_node(node, target_value)
+begin
+    impl:
+        if node = NullNode then
+            found := NullNode;
+        elsif node.value = target_value then
+            found := node;
+        elsif target_value < node.value then
+            call find_node(node.left, target_value);
+        else
+            call find_node(node.right, target_value);
+        end if;
+end procedure;
+
+procedure contains(target_value)
+begin
+    impl:
+        call find_node(root, target_value);
+    init:
+        exists := (result /= NullNode);
 end procedure;
 
 fair process Main = "Main"
 begin
     main_loop:
         while (TRUE) do
-            with action_type \in {"Add", "Delete"}, value \in 0..10 do
-                if action_type = "Add" then
-                    call add_node(value);
-                else
+            with action_type \in {"insert", "find", "contains", "delete"}, value \in 0..10 do
+                if action_type = "insert" then
+                    call insert_node(value);
+                elsif action_type = "find" then
+                    call find_node(root, value);
+                elsif action_type = "contains" then
+                    call contains(value);
+                elsif action_type = "delete" then
                     with node \in nodes do
                         call delete_node(node);
                     end with;
